@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:snooker_scorer/helpers/text_formatter.dart';
 
 class FoulForm extends StatefulWidget {
   const FoulForm({super.key, required this.handleFoul});
-  final Function(int foulAmount) handleFoul;
+  final Function(int foulAmount, int redsPotted) handleFoul;
   @override
   State<FoulForm> createState() => _FoulFormState();
 }
 
 class _FoulFormState extends State<FoulForm> {
   final _foulAmountController = TextEditingController();
+  int foulAmount = 0;
+  bool _showRedsPotted = false;
+  int redsPotted = 0;
 
   @override
   void dispose() {
@@ -18,8 +19,8 @@ class _FoulFormState extends State<FoulForm> {
     super.dispose();
   }
 
-  void _submitFrameData() {
-    if (_foulAmountController.text.trim().isEmpty) {
+  void _submitFoulData() {
+    if (foulAmount == 0) {
       showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -37,9 +38,10 @@ class _FoulFormState extends State<FoulForm> {
     }
 
     widget.handleFoul(
-      int.parse(_foulAmountController.text),
+      foulAmount,
+      redsPotted,
     );
-    Navigator.of(context).pop(int.parse(_foulAmountController.text));
+    Navigator.of(context).pop(foulAmount);
   }
 
   @override
@@ -50,27 +52,44 @@ class _FoulFormState extends State<FoulForm> {
           children: [
             const Row(
               children: [
-                Text('Fouls',
+                Text('Foul',
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ],
             ),
-            Row(children: [
-              Expanded(
-                child: TextField(
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    RangeTextInputFormatter(min: 4, max: 7),
-                  ],
-                  decoration: const InputDecoration(label: Text('Points')),
-                  controller: _foulAmountController,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: false),
-                  autocorrect: false,
-                  enableSuggestions: false,
-                ),
+            _colourButtons(),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        foulAmount.toString(),
+                        style: const TextStyle(
+                            fontSize: 64, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ]),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Checkbox(
+                  value: _showRedsPotted,
+                  onChanged: (value) {
+                    setState(() {
+                      _showRedsPotted = value!;
+                    });
+                  },
+                ),
+                const Text('Reds potted?')
+              ],
+            ),
+            const SizedBox(height: 20),
+            if (_showRedsPotted) _redsPotted(),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -80,12 +99,176 @@ class _FoulFormState extends State<FoulForm> {
                     child: const Text('Cancel')),
                 ElevatedButton(
                     onPressed: () {
-                      _submitFrameData();
+                      _submitFoulData();
                     },
-                    child: const Text('Save'))
+                    child: const Text('Save')),
+                ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        if (redsPotted == 0) return;
+                        redsPotted -= 1;
+                      });
+                    },
+                    child: const Text('Undo'))
               ],
             )
           ],
         ));
+  }
+
+  Widget _redsPotted() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  redsPotted += 1;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: EdgeInsets.zero, // Remove extra padding
+              ),
+              child: const CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.red,
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Text(
+                    redsPotted.toString(),
+                    style: const TextStyle(
+                        fontSize: 64, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _colourButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              foulAmount = 4;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            shape: const CircleBorder(),
+            padding: EdgeInsets.zero, // Remove extra padding
+          ),
+          child: const CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.red,
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              foulAmount = 4;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            shape: const CircleBorder(),
+            padding: EdgeInsets.zero, // Remove extra padding
+          ),
+          child: const CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.yellow,
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              foulAmount = 4;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            shape: const CircleBorder(),
+            padding: EdgeInsets.zero, // Remove extra padding
+          ),
+          child: const CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.green,
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              foulAmount = 4;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            shape: const CircleBorder(),
+            padding: EdgeInsets.zero, // Remove extra padding
+          ),
+          child: const CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.brown,
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              foulAmount = 5;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            shape: const CircleBorder(),
+            padding: EdgeInsets.zero, // Remove extra padding
+          ),
+          child: const CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.blue,
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              foulAmount = 6;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            shape: const CircleBorder(),
+            padding: EdgeInsets.zero, // Remove extra padding
+          ),
+          child: const CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.pink,
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              foulAmount = 7;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            shape: const CircleBorder(),
+            padding: EdgeInsets.zero, // Remove extra padding
+          ),
+          child: const CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.black,
+          ),
+        ),
+      ],
+    );
   }
 }

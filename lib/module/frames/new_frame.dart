@@ -3,6 +3,7 @@ import 'package:snooker_scorer/module/frames/foul_form.dart';
 import 'package:snooker_scorer/model/frame.dart';
 import 'package:snooker_scorer/model/game_date.dart';
 import 'package:snooker_scorer/model/user.dart';
+import 'package:snooker_scorer/module/frames/settings_form.dart';
 import 'package:snooker_scorer/test_data.dart';
 
 class NewFrame extends StatefulWidget {
@@ -38,16 +39,17 @@ class _NewFrameState extends State<NewFrame> {
   int breakBlues = 0;
   int breakPinks = 0;
   int breakBlacks = 0;
-  int colourSequence = 0;
   bool startingColours = false;
   bool lastRed = false;
-  List<String> coloursSequence = [
-    'yellow',
-    'green',
-    'brown',
-    'blue',
-    'pink',
-    'black'
+  final List<Map<String, dynamic>> _history = [];
+  final List<String> _colourSequence = [
+    '',
+    'Yellow',
+    'Green',
+    'Brown',
+    'Blue',
+    'Pink',
+    'Black'
   ];
   int currentColourIndex = 0;
 
@@ -59,6 +61,57 @@ class _NewFrameState extends State<NewFrame> {
         FakeData.getUsers().where((element) => element.id == players[0]).first;
     _userTwo =
         FakeData.getUsers().where((element) => element.id == players[1]).first;
+  }
+
+  void _saveState() {
+    _history.add({
+      'redsRemaining': redsRemaining,
+      '_nextBall': _nextBall,
+      'currentColourIndex': currentColourIndex,
+      'playerOneScore': _player1Score,
+      'playerTwoScore': _player2Score,
+      'currentPlayer': _currentPlayer,
+      'yellow': yellow,
+      'green': green,
+      'brown': brown,
+      'blue': blue,
+      'pink': pink,
+      'black': black,
+      'breakReds': breakReds,
+      'breakYellows': breakYellows,
+      'breakGreens': breakGreens,
+      'breakBrowns': breakBrowns,
+      'breakBlues': breakBlues,
+      'breakPinks': breakPinks,
+      'breakBlacks': breakBlacks
+    });
+  }
+
+  void _undo() {
+    if (_history.isNotEmpty) {
+      final lastState = _history.removeLast();
+      setState(() {
+        redsRemaining = lastState['redsRemaining'];
+        _nextBall = lastState['_nextBall'];
+        currentColourIndex = lastState['currentColourIndex'];
+        _player1Score = lastState['playerOneScore'];
+        _player2Score = lastState['playerTwoScore'];
+        _currentPlayer = lastState['currentPlayer'];
+        yellow = lastState['yellow'];
+        green = lastState['green'];
+        brown = lastState['brown'];
+        blue = lastState['blue'];
+        pink = lastState['pink'];
+        black = lastState['black'];
+        breakReds = lastState['breakReds'];
+        breakYellows = lastState['breakYellows'];
+        breakGreens = lastState['breakGreens'];
+        breakBrowns = lastState['breakBrowns'];
+        breakBlues = lastState['breakBlues'];
+        breakPinks = lastState['breakPinks'];
+        breakBlacks = lastState['breakBlacks'];
+      });
+    }
   }
 
   void switchNextBall() {
@@ -89,13 +142,15 @@ class _NewFrameState extends State<NewFrame> {
     if (redsRemaining > 0 && lastRed == false) {
       _nextBall = _nextBall == 'red' ? 'colour' : 'red';
     } else if (redsRemaining == 0 && lastRed == true && _nextBall == 'red') {
-      print('last red');
       _nextBall = 'colour';
     } else if (redsRemaining == 0 && lastRed == true && _nextBall == 'colour') {
-      print('last colour');
       lastRed = false;
+      currentColourIndex += 1;
     } else {
       _nextBall = 'colour';
+      if (currentColourIndex < 6) {
+        currentColourIndex += 1;
+      }
       switch (score) {
         case 2:
           setState(() {
@@ -137,6 +192,7 @@ class _NewFrameState extends State<NewFrame> {
   }
 
   void _updateBreak(int score) {
+    _saveState();
     final redsGone = redsRemaining == 0 && lastRed == false;
     if (redsGone && score == 1) {
       setState(() {});
@@ -156,6 +212,12 @@ class _NewFrameState extends State<NewFrame> {
         _updateNextBall(score);
       });
     } else {
+      if (_nextBall == 'red') {
+        if (redsRemaining == 1) {
+          lastRed = true;
+        }
+        redsRemaining -= 1;
+      }
       setState(() {
         _player2Score += score;
         _currentBreak += score;
@@ -167,8 +229,21 @@ class _NewFrameState extends State<NewFrame> {
   void changeTurn() {
     setState(() {
       _currentPlayer = _currentPlayer == 1 ? 2 : 1;
-      _currentBreak = 0;
       _nextBall = 'red';
+      resetBreak();
+    });
+  }
+
+  void resetBreak() {
+    setState(() {
+      _currentBreak = 0;
+      breakReds = 0;
+      breakYellows = 0;
+      breakGreens = 0;
+      breakBrowns = 0;
+      breakBlues = 0;
+      breakPinks = 0;
+      breakBlacks = 0;
     });
   }
 
@@ -182,7 +257,30 @@ class _NewFrameState extends State<NewFrame> {
     );
   }
 
-  void handleFoul(int foul) {
+  void updateSettings(int p1Score, int p2Score, int reds) {
+    setState(() {
+      _player1Score = p1Score;
+      _player2Score = p2Score;
+      redsRemaining = reds;
+    });
+  }
+
+  Future<int?> settings() {
+    return showModalBottomSheet<int>(
+      isScrollControlled: true,
+      context: context,
+      builder: (ctx) {
+        return SettingsForm(
+          updateSettings: updateSettings,
+          p1Score: _player1Score,
+          p2Score: _player2Score,
+          redsRemaining: redsRemaining,
+        );
+      },
+    );
+  }
+
+  void handleFoul(int foul, int redsPotted) {
     setState(() {
       if (_currentPlayer == 1) {
         _player2Score += foul;
@@ -190,6 +288,9 @@ class _NewFrameState extends State<NewFrame> {
         _player1Score += foul;
       }
       _nextBall = 'red';
+      if (redsPotted > 0) {
+        redsRemaining -= redsPotted;
+      }
     });
   }
 
@@ -300,6 +401,20 @@ class _NewFrameState extends State<NewFrame> {
                       child: const Text('End Frame'),
                     )
                   : Container(),
+              black
+                  ? ElevatedButton(
+                      onPressed: () {
+                        settings();
+                      },
+                      child: const Text('Settings'),
+                    )
+                  : Container(),
+              ElevatedButton(
+                onPressed: () {
+                  _undo();
+                },
+                child: const Text('Undo'),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -310,7 +425,8 @@ class _NewFrameState extends State<NewFrame> {
 
   _pointsRemaining() {
     return [
-      Text('Remaining: ${calculateRemaining()} ${nextColour}',
+      Text(
+          'Remaining: ${calculateRemaining()} ${_colourSequence[currentColourIndex]}',
           style: const TextStyle(fontSize: 20)),
     ];
   }
