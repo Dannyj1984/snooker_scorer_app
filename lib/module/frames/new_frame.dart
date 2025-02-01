@@ -23,13 +23,34 @@ class _NewFrameState extends State<NewFrame> {
   int _currentPlayer = 1;
   int _currentBreak = 0;
   String _nextBall = 'red';
-  int redsRemaining = 15;
+  String nextColour = '';
+  int redsRemaining = 5;
   bool yellow = true;
   bool green = true;
   bool brown = true;
   bool blue = true;
   bool pink = true;
   bool black = true;
+  int breakReds = 0;
+  int breakYellows = 0;
+  int breakGreens = 0;
+  int breakBrowns = 0;
+  int breakBlues = 0;
+  int breakPinks = 0;
+  int breakBlacks = 0;
+  int colourSequence = 0;
+  bool startingColours = false;
+  bool lastRed = false;
+  List<String> coloursSequence = [
+    'yellow',
+    'green',
+    'brown',
+    'blue',
+    'pink',
+    'black'
+  ];
+  int currentColourIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -46,21 +67,99 @@ class _NewFrameState extends State<NewFrame> {
     });
   }
 
+  void _updateBreakBalls(int score) {
+    if (score == 1) {
+      breakReds += 1;
+    } else if (score == 2) {
+      breakYellows += 1;
+    } else if (score == 3) {
+      breakGreens += 1;
+    } else if (score == 4) {
+      breakBrowns += 1;
+    } else if (score == 5) {
+      breakBlues += 1;
+    } else if (score == 6) {
+      breakPinks += 1;
+    } else if (score == 7) {
+      breakBlacks += 1;
+    }
+  }
+
+  void _updateNextBall(int score) {
+    if (redsRemaining > 0 && lastRed == false) {
+      _nextBall = _nextBall == 'red' ? 'colour' : 'red';
+    } else if (redsRemaining == 0 && lastRed == true && _nextBall == 'red') {
+      print('last red');
+      _nextBall = 'colour';
+    } else if (redsRemaining == 0 && lastRed == true && _nextBall == 'colour') {
+      print('last colour');
+      lastRed = false;
+    } else {
+      _nextBall = 'colour';
+      switch (score) {
+        case 2:
+          setState(() {
+            yellow = false;
+            nextColour = 'Green';
+          });
+          break;
+        case 3:
+          setState(() {
+            green = false;
+            nextColour = 'Brown';
+          });
+          break;
+        case 4:
+          setState(() {
+            brown = false;
+            nextColour = 'Blue';
+          });
+          break;
+        case 5:
+          setState(() {
+            blue = false;
+            nextColour = 'Pink';
+          });
+          break;
+        case 6:
+          setState(() {
+            pink = false;
+            nextColour = 'Black';
+          });
+          break;
+        case 7:
+          setState(() {
+            black = false;
+          });
+          break;
+      }
+    }
+  }
+
   void _updateBreak(int score) {
+    final redsGone = redsRemaining == 0 && lastRed == false;
+    if (redsGone && score == 1) {
+      setState(() {});
+      return;
+    }
+    _updateBreakBalls(score);
     if (_currentPlayer == 1) {
       if (_nextBall == 'red') {
+        if (redsRemaining == 1) {
+          lastRed = true;
+        }
         redsRemaining -= 1;
       }
       setState(() {
         _player1Score += score;
         _currentBreak += score;
-        _nextBall = _nextBall == 'red' ? 'colour' : 'red';
+        _updateNextBall(score);
       });
     } else {
       setState(() {
         _player2Score += score;
         _currentBreak += score;
-        _nextBall = _nextBall == 'red' ? 'colour' : 'red';
+        _updateNextBall(score);
       });
     }
   }
@@ -133,7 +232,6 @@ class _NewFrameState extends State<NewFrame> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     final frameNumber = widget.frame.frame;
     return Scaffold(
       appBar: AppBar(
@@ -167,6 +265,10 @@ class _NewFrameState extends State<NewFrame> {
           ),
           const Spacer(),
           Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: _breakBalls(),
+          ),
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: _pointsRemaining(),
           ),
@@ -190,6 +292,14 @@ class _NewFrameState extends State<NewFrame> {
                 },
                 child: const Text('Foul'),
               ),
+              !black
+                  ? ElevatedButton(
+                      onPressed: () {
+                        addFoul();
+                      },
+                      child: const Text('End Frame'),
+                    )
+                  : Container(),
             ],
           ),
           const SizedBox(height: 20),
@@ -200,8 +310,160 @@ class _NewFrameState extends State<NewFrame> {
 
   _pointsRemaining() {
     return [
-      Text('Remaining: ${calculateRemaining()}',
+      Text('Remaining: ${calculateRemaining()} ${nextColour}',
           style: const TextStyle(fontSize: 20)),
+    ];
+  }
+
+  List<Widget> _breakBalls() {
+    return [
+      breakReds > 0
+          ? ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(8), // Remove extra padding
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.red,
+                  ),
+                  Text(breakReds.toString(),
+                      style:
+                          const TextStyle(fontSize: 20, color: Colors.white)),
+                ],
+              ),
+            )
+          : Container(),
+      breakYellows > 0
+          ? ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(8), // Remove extra padding
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.yellow,
+                  ),
+                  Text(breakYellows.toString(),
+                      style:
+                          const TextStyle(fontSize: 20, color: Colors.black)),
+                ],
+              ),
+            )
+          : Container(),
+      breakGreens > 0
+          ? ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(8), // Remove extra padding
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.green,
+                  ),
+                  Text(breakGreens.toString(),
+                      style:
+                          const TextStyle(fontSize: 20, color: Colors.white)),
+                ],
+              ),
+            )
+          : Container(),
+      breakBrowns > 0
+          ? ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(8), // Remove extra padding
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.brown,
+                  ),
+                  Text(breakBrowns.toString(),
+                      style:
+                          const TextStyle(fontSize: 20, color: Colors.white)),
+                ],
+              ),
+            )
+          : Container(),
+      breakBlues > 0
+          ? ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(8), // Remove extra padding
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.blue,
+                  ),
+                  Text(breakBlues.toString(),
+                      style:
+                          const TextStyle(fontSize: 20, color: Colors.white)),
+                ],
+              ),
+            )
+          : Container(),
+      breakPinks > 0
+          ? ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(8), // Remove extra padding
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.pink,
+                  ),
+                  Text(breakPinks.toString(),
+                      style:
+                          const TextStyle(fontSize: 20, color: Colors.white)),
+                ],
+              ),
+            )
+          : Container(),
+      breakBlacks > 0
+          ? ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(8), // Remove extra padding
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.black,
+                  ),
+                  Text(breakBlacks.toString(),
+                      style:
+                          const TextStyle(fontSize: 20, color: Colors.white)),
+                ],
+              ),
+            )
+          : Container(),
     ];
   }
 
@@ -223,7 +485,8 @@ class _NewFrameState extends State<NewFrame> {
         ),
       ),
       ElevatedButton(
-        onPressed: _nextBall == 'red'
+        onPressed: ((_nextBall == 'red' && !yellow) ||
+                (_nextBall == 'colour' && !yellow))
             ? null
             : () {
                 _updateBreak(2);
@@ -238,7 +501,8 @@ class _NewFrameState extends State<NewFrame> {
         ),
       ),
       ElevatedButton(
-        onPressed: _nextBall == 'red'
+        onPressed: ((_nextBall == 'red' && !green) ||
+                (_nextBall == 'colour' && !green))
             ? null
             : () {
                 _updateBreak(3);
@@ -253,7 +517,8 @@ class _NewFrameState extends State<NewFrame> {
         ),
       ),
       ElevatedButton(
-        onPressed: _nextBall == 'red'
+        onPressed: ((_nextBall == 'red' && !brown) ||
+                (_nextBall == 'colour' && !brown))
             ? null
             : () {
                 _updateBreak(4);
@@ -268,11 +533,12 @@ class _NewFrameState extends State<NewFrame> {
         ),
       ),
       ElevatedButton(
-        onPressed: _nextBall == 'red'
-            ? null
-            : () {
-                _updateBreak(5);
-              },
+        onPressed:
+            ((_nextBall == 'red' && !blue) || (_nextBall == 'colour' && !blue))
+                ? null
+                : () {
+                    _updateBreak(5);
+                  },
         style: ElevatedButton.styleFrom(
           shape: const CircleBorder(),
           padding: EdgeInsets.zero, // Remove extra padding
@@ -283,11 +549,12 @@ class _NewFrameState extends State<NewFrame> {
         ),
       ),
       ElevatedButton(
-        onPressed: _nextBall == 'red'
-            ? null
-            : () {
-                _updateBreak(6);
-              },
+        onPressed:
+            ((_nextBall == 'red' && !pink) || (_nextBall == 'colour' && !pink))
+                ? null
+                : () {
+                    _updateBreak(6);
+                  },
         style: ElevatedButton.styleFrom(
           shape: const CircleBorder(),
           padding: EdgeInsets.zero, // Remove extra padding
@@ -298,7 +565,8 @@ class _NewFrameState extends State<NewFrame> {
         ),
       ),
       ElevatedButton(
-        onPressed: _nextBall == 'red'
+        onPressed: ((_nextBall == 'red' && !black) ||
+                (_nextBall == 'colour' && !black))
             ? null
             : () {
                 _updateBreak(7);

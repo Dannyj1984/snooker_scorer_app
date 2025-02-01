@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:snooker_scorer/model/frame.dart';
 import 'package:snooker_scorer/model/frame_score.dart';
 import 'package:snooker_scorer/model/game_date.dart';
-import 'package:snooker_scorer/test_data.dart';
 
 class FramesForDate extends StatefulWidget {
   final List<Frame> frames;
@@ -51,16 +50,19 @@ class _FramesForDateState extends State<FramesForDate> {
               onTap: () => frame.inProgress
                   ? _goToFrameDetails(frame, widget.gameDate)
                   : showBreaks(index + 1),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Text(
-                      '${frame.inProgress ? '0' : frame.scores?.playerOneScore}',
-                      style: const TextStyle(fontSize: 30)),
-                  Text(
-                      '${frame.inProgress ? '0' : frame.scores?.playerTwoScore}',
-                      style: const TextStyle(fontSize: 30)),
-                ],
+              child: Container(
+                color: Colors.transparent, // Make the container transparent
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text(
+                        '${frame.inProgress ? '0' : frame.scores?.playerOneScore}',
+                        style: const TextStyle(fontSize: 30)),
+                    Text(
+                        '${frame.inProgress ? '0' : frame.scores?.playerTwoScore}',
+                        style: const TextStyle(fontSize: 30)),
+                  ],
+                ),
               ),
             ),
             Visibility(
