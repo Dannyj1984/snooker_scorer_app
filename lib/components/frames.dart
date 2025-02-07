@@ -41,6 +41,7 @@ class _FramesForDateState extends State<FramesForDate> {
         itemBuilder: (context, index) {
           Frame frame = frames[index];
           return Column(children: [
+            const SizedBox(height: 20),
             Text('Frame ${index + 1} ${frame.inProgress ? 'In Progress' : ''}',
                 style: const TextStyle(fontSize: 20)),
             const SizedBox(
@@ -55,11 +56,9 @@ class _FramesForDateState extends State<FramesForDate> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Text(
-                        '${frame.inProgress ? '0' : frame.scores?.playerOneScore}',
+                    Text('${frame.playerOneScore}',
                         style: const TextStyle(fontSize: 30)),
-                    Text(
-                        '${frame.inProgress ? '0' : frame.scores?.playerTwoScore}',
+                    Text('${frame.playerTwoScore}',
                         style: const TextStyle(fontSize: 30)),
                   ],
                 ),
@@ -67,24 +66,28 @@ class _FramesForDateState extends State<FramesForDate> {
             ),
             Visibility(
               visible: _showBreaksMap[index + 1] ?? false,
-              child: showBreaksSection(frame.scores!),
+              child: showBreaksSection(frame),
             ),
             const Divider()
           ]);
         });
   }
 
-  Widget showBreaksSection(FrameScore scores) {
-    final p1Breaks = scores.playerOneBreaks ?? [];
-    final p2Breaks = scores.playerTwoBreaks ?? [];
+  Widget showBreaksSection(Frame frame) {
+    final p1Breaks = frame.playerOneBreakData ?? [];
+    final p2Breaks = frame.playerTwoBreakData ?? [];
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         Column(
-          children: p1Breaks.map((breakScore) => Text('$breakScore')).toList(),
+          children: p1Breaks!
+              .map((breakScore) => Text(breakScore['points'].toString()))
+              .toList(),
         ),
         Column(
-          children: p2Breaks.map((breakScore) => Text('$breakScore')).toList(),
+          children: p2Breaks!
+              .map((breakScore) => Text(breakScore['points'].toString()))
+              .toList(),
         ),
       ],
     );

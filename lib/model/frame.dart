@@ -1,33 +1,60 @@
 import 'package:snooker_scorer/model/frame_score.dart';
 
 class Frame {
-  final int id;
+  late String? docReference;
   final int frame;
-  final FrameScore? scores;
   final bool inProgress;
+  final String playerOne;
+  final String playerTwo;
+  late int playerOneScore;
+  late int playerTwoScore;
+  late List<String>? playerOneBreaks;
+  late List<String>? playerTwoBreaks;
+  late List<Map<String, dynamic>>? playerOneBreakData;
+  late List<Map<String, dynamic>>? playerTwoBreakData;
 
-  Frame({
-    required this.id,
-    required this.frame,
-    required this.inProgress,
-    this.scores,
-  });
-
-  factory Frame.fromJson(Map<String, dynamic> json) {
-    return Frame(
-      id: json['id'],
-      inProgress: json['inProgress'],
-      frame: json['frame'],
-      scores: json['scores'] ?? [],
-    );
-  }
+  Frame(
+      {this.docReference,
+      required this.frame,
+      required this.inProgress,
+      required this.playerOne,
+      required this.playerTwo,
+      required this.playerOneScore,
+      required this.playerTwoScore,
+      this.playerOneBreaks,
+      this.playerTwoBreaks,
+      this.playerOneBreakData,
+      this.playerTwoBreakData});
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'frame': frame,
-      'scores': scores,
-      'inProgress': inProgress
+      'inProgress': inProgress,
+      'playerOne': playerOne,
+      'playerTwo': playerTwo,
+      'playerOneScore': playerOneScore,
+      'playerTwoScore': playerTwoScore,
+      'playerOneBreaks': playerOneBreaks,
+      'playerTwoBreaks': playerTwoBreaks,
+      'playerOneBreakData': playerOneBreakData,
+      'playerTwoBreakData': playerTwoBreakData
     };
+  }
+
+  factory Frame.fromJson(Map<String, dynamic> json) {
+    return Frame(
+      frame: json['frame'],
+      inProgress: json['inProgress'],
+      playerOne: json['playerOne'],
+      playerTwo: json['playerTwo'],
+      playerOneScore: json['playerOneScore'],
+      playerTwoScore: json['playerTwoScore'],
+      playerOneBreaks: List<String>.from(json['playerOneBreaks'] ?? []),
+      playerTwoBreaks: List<String>.from(json['playerTwoBreaks'] ?? []),
+      playerOneBreakData:
+          List<Map<String, dynamic>>.from(json['playerOneBreakData'] ?? []),
+      playerTwoBreakData:
+          List<Map<String, dynamic>>.from(json['playerTwoBreakData'] ?? []),
+    );
   }
 }

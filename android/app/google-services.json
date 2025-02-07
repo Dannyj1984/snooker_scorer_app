@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "989437311805",
+    "project_id": "snookerscorer-75cb9",
+    "storage_bucket": "snookerscorer-75cb9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:989437311805:android:6022cc1f4911d4c2cf6354",
+        "android_client_info": {
+          "package_name": "com.example.snooker_scorer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFb68i8CLL9AGDwz6W0CV-4lzzhU-Bsys"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

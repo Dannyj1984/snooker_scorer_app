@@ -1,9 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:snooker_scorer/components/frames.dart';
 import 'package:snooker_scorer/helpers/date_helper.dart';
 import 'package:snooker_scorer/model/game_date.dart';
-import 'package:snooker_scorer/module/games/games.dart';
-import 'package:snooker_scorer/test_data.dart';
 
 class GameDetails extends StatefulWidget {
   const GameDetails({super.key, required this.game});
@@ -20,9 +19,13 @@ class _GameDetailsState extends State<GameDetails> {
     super.initState();
   }
 
-  String _getUser(int id) {
-    var users = FakeData.getUsers();
-    return users.firstWhere((element) => element.id == id).name;
+  Future<String> _getUser(String name) async {
+    var user = await FirebaseFirestore.instance
+        .collection('users')
+        .where('name', isEqualTo: name)
+        .limit(1)
+        .get();
+    return user.docs.first.data()['name'];
   }
 
   List<int> _getFramesWon() {
@@ -34,8 +37,7 @@ class _GameDetailsState extends State<GameDetails> {
     var playerTwoWins = 0;
 
     for (var frame in frames) {
-      if ((frame.scores!.playerOneScore ?? 0) >
-          (frame.scores!.playerTwoScore ?? 0)) {
+      if ((frame.playerOneScore) > (frame.playerTwoScore)) {
         playerOneWins++;
       } else {
         playerTwoWins++;
@@ -69,9 +71,18 @@ class _GameDetailsState extends State<GameDetails> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Text(
-                _getUser(widget.game.players![0]),
-                style: const TextStyle(fontSize: 20),
+              FutureBuilder(
+                future: _getUser('Danny'),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Text(
+                      snapshot.data!,
+                      style: const TextStyle(fontSize: 20),
+                    );
+                  } else {
+                    return const CircularProgressIndicator();
+                  }
+                },
               ),
               const SizedBox(
                 width: 20,
@@ -83,9 +94,18 @@ class _GameDetailsState extends State<GameDetails> {
               Text('${_getFramesWon().last}',
                   style: const TextStyle(fontSize: 20)),
               const SizedBox(width: 20),
-              Text(
-                _getUser(widget.game.players![1]),
-                style: const TextStyle(fontSize: 20),
+              FutureBuilder(
+                future: _getUser('Andy'),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Text(
+                      snapshot.data!,
+                      style: const TextStyle(fontSize: 20),
+                    );
+                  } else {
+                    return const CircularProgressIndicator();
+                  }
+                },
               )
             ],
           ),

@@ -3,10 +3,11 @@
 import 'package:flutter/material.dart';
 
 class SettingsForm extends StatefulWidget {
-  final Function(int, int, int) updateSettings;
+  final Function(int, int, int, bool) updateSettings;
   final int p1Score;
   final int p2Score;
   final int redsRemaining;
+  final bool endFrame;
 
   const SettingsForm({
     super.key,
@@ -14,6 +15,7 @@ class SettingsForm extends StatefulWidget {
     required this.p1Score,
     required this.p2Score,
     required this.redsRemaining,
+    required this.endFrame,
   });
   @override
   State<SettingsForm> createState() => _SettingsFormState();
@@ -23,7 +25,8 @@ class _SettingsFormState extends State<SettingsForm> {
   final player1ScoreController = TextEditingController();
   final player2ScoreController = TextEditingController();
   final redsRemainingController = TextEditingController();
-
+  var endFrame = false;
+  @override
   initState() {
     super.initState();
     player1ScoreController.text = widget.p1Score.toString();
@@ -67,6 +70,19 @@ class _SettingsFormState extends State<SettingsForm> {
               ),
               controller: redsRemainingController,
             ),
+            CheckboxListTile(
+              title: const Text('End Frame'),
+              value: endFrame,
+              onChanged: (value) {
+                setState(() {
+                  if (value!) {
+                    endFrame = true;
+                  } else {
+                    endFrame = false;
+                  }
+                });
+              },
+            ),
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: ElevatedButton(
@@ -74,7 +90,8 @@ class _SettingsFormState extends State<SettingsForm> {
                   widget.updateSettings(
                       int.parse(player1ScoreController.text),
                       int.parse(player2ScoreController.text),
-                      int.parse(redsRemainingController.text));
+                      int.parse(redsRemainingController.text),
+                      endFrame);
                   Navigator.of(context).pop();
                 },
                 child: const Text('Update'),

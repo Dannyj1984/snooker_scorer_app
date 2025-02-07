@@ -1,32 +1,39 @@
-mixin Score {
-  int? playerOne;
-  int? playerOneScore;
-  int? playerTwo;
-  int? playerTwoScore;
-  List<int>? playerOneBreaks;
-  List<int>? playerTwoBreaks;
-}
+class FrameScore {
+  final String playerOne;
+  final String playerTwo;
+  late int playerOneScore;
+  late int playerTwoScore;
+  late List<String>? playerOneBreaks;
+  late List<String>? playerTwoBreaks;
 
-class FrameScore with Score {
   FrameScore({
-    this.playerOne,
-    this.playerOneScore,
-    this.playerTwo,
-    this.playerTwoScore,
+    required this.playerOne,
+    required this.playerTwo,
+    required this.playerOneScore,
+    required this.playerTwoScore,
     this.playerOneBreaks,
     this.playerTwoBreaks,
   });
 
-  @override
-  int? playerOne;
-  @override
-  int? playerOneScore;
-  @override
-  int? playerTwo;
-  @override
-  int? playerTwoScore;
-  @override
-  List<int>? playerTwoBreaks;
-  @override
-  List<int>? playerOneBreaks;
+  Map<String, dynamic> toJson() {
+    return {
+      'playerOne': playerOne,
+      'playerTwo': playerTwo,
+      'playerOneScore': playerOneScore,
+      'playerTwoScore': playerTwoScore,
+      'playerOneBreaks': playerOneBreaks,
+      'playerTwoBreaks': playerTwoBreaks,
+    };
+  }
+
+  factory FrameScore.fromJson(Map<String, dynamic> json) {
+    return FrameScore(
+      playerOne: json['playerOne'],
+      playerTwo: json['playerTwo'],
+      playerOneScore: json['playerOneScore'],
+      playerTwoScore: json['playerTwoScore'],
+      playerOneBreaks: List<String>.from(json['playerOneBreaks'] ?? []),
+      playerTwoBreaks: List<String>.from(json['playerTwoBreaks'] ?? []),
+    );
+  }
 }

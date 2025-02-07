@@ -1,17 +1,28 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:snooker_scorer/components/frames.dart';
-import 'package:snooker_scorer/module/frames/foul_form.dart';
-import 'package:snooker_scorer/components/user_selector.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:snooker_scorer/model/frame.dart';
-import 'package:snooker_scorer/model/frame_score.dart';
 import 'package:snooker_scorer/model/game_date.dart';
-import 'package:snooker_scorer/model/user.dart';
 import 'package:snooker_scorer/module/frames/new_frame.dart';
 import 'package:snooker_scorer/module/frames/new_game.dart';
 import 'package:snooker_scorer/module/games/games.dart';
-import 'package:snooker_scorer/test_data.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: "../.env");
+  } catch (e) {
+    print('Error loading .env file: $e');
+  }
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
+      apiKey: dotenv.env['API_KEY']!,
+      appId: dotenv.env['APP_ID']!,
+      messagingSenderId: dotenv.env['MESSAGING_SENDER_ID']!,
+      projectId: dotenv.env['PROJECT_ID']!,
+    ),
+  );
   runApp(const MyApp());
 }
 
@@ -65,6 +76,19 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _createUsers();
+  }
+
+  Future<void> _createUsers() async {
+    final users = await FirebaseFirestore.instance.collection('users').get();
+    if (users.docs.length < 2) {
+      await FirebaseFirestore.instance.collection('users').doc('user1').set({
+        'name': 'Danny',
+      });
+      await FirebaseFirestore.instance.collection('users').doc('user2').set({
+        'name': 'Andy',
+      });
+    }
   }
 
   @override
@@ -105,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const NewGameDate(
+                        builder: (context) => const Games(
                           title: 'New Game',
                         ),
                       ),
@@ -129,7 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const NewGameDate(
+                        builder: (context) => const Games(
                           title: 'New Game',
                         ),
                       ),
@@ -147,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const NewGameDate(
+                        builder: (context) => const Games(
                           title: 'New Game',
                         ),
                       ),
