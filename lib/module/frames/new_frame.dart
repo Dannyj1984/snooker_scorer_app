@@ -375,10 +375,8 @@ class _NewFrameState extends State<NewFrame> {
         .collection('breaks')
         .add(playerBreak.toJson());
     if (_currentPlayer == 1) {
-      print('Player 1 breaks: ${playerBreak}');
       widget.frame.playerOneBreaks!.add(docRef.id);
     } else {
-      print('Player 2 breaks: ${playerBreak}');
       widget.frame.playerTwoBreaks!.add(docRef.id);
     }
     // Update the frame data with the new value for playerOneBreaks.
@@ -479,6 +477,61 @@ class _NewFrameState extends State<NewFrame> {
                         Navigator.of(ctx).pop();
                       },
                       child: const Text('Cancel'))
+                ]));
+  }
+
+  void luck() {
+    FirebaseFirestore.instance
+        .collection('users')
+        .where('name', isEqualTo: _currentPlayer == 1 ? _userOne : _userTwo)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        final userDoc = querySnapshot.docs.first;
+        userDoc.reference.update({'luck': FieldValue.increment(1)});
+      }
+    });
+  }
+
+  void easyMiss() {
+    FirebaseFirestore.instance
+        .collection('users')
+        .where('name', isEqualTo: _currentPlayer == 1 ? _userOne : _userTwo)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        final userDoc = querySnapshot.docs.first;
+        userDoc.reference.update({'easyMiss': FieldValue.increment(1)});
+      }
+    });
+  }
+
+  void actions() {
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+                title: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [Text('Actions')],
+                ),
+                actions: [
+                  ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        luck();
+                      },
+                      icon: const Icon(Icons.flag_circle_outlined),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(100, 50),
+                      ),
+                      label: const Text('Luck')),
+                  ElevatedButton.icon(
+                      onPressed: () {
+                        easyMiss();
+                        Navigator.of(ctx).pop();
+                      },
+                      icon: const Icon(Icons.car_crash),
+                      label: const Text('Miss')),
                 ]));
   }
 
@@ -648,7 +701,12 @@ class _NewFrameState extends State<NewFrame> {
                         child: ElevatedButton(
                             onPressed: concedeFrame,
                             child: const Text('Concede Frame')),
-                      )
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0, left: 4.0),
+                        child: ElevatedButton(
+                            onPressed: actions, child: const Text('Actions')),
+                      ),
                     ])
                   : Container(),
               const SizedBox(height: 20),
