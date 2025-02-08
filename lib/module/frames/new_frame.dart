@@ -243,6 +243,63 @@ class _NewFrameState extends State<NewFrame> {
     }
   }
 
+  Future<void> _checkMissedShot() async {
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Off the spot'),
+        content: const Text('Did you miss the black ball off the spot.'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              if (_currentPlayer == 1) {
+                await _incrementBlacksMissed('Danny');
+              } else {
+                await _incrementBlacksMissed('Andy');
+              }
+              setState(() {});
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _checkOffSpot() {
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+                title: const Text('Off the spot'),
+                content: const Text('Did you pot the black ball off the spot.'),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        setState(() {
+                          if (_currentPlayer == 1) {
+                            _incrementBlacksPotted('Danny');
+                          } else {
+                            _incrementBlacksPotted('Andy');
+                          }
+                        });
+                        Navigator.of(ctx).pop();
+                      },
+                      child: const Text('Yes')),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                      },
+                      child: const Text('No'))
+                ]));
+  }
+
   void _updateBreak(int score) {
     _saveState();
     final redsGone = redsRemaining == 0 && lastRed == false;
@@ -279,6 +336,9 @@ class _NewFrameState extends State<NewFrame> {
   }
 
   void changeTurn() async {
+    if (_currentBreak > 0 && _nextBall == 'colour') {
+      await _checkMissedShot();
+    }
     if (_currentBreak > 20) {
       final breakData = {
         'total': _currentBreak,
@@ -305,7 +365,6 @@ class _NewFrameState extends State<NewFrame> {
   }
 
   Future<bool> _saveBreak(int points, int playerName) async {
-    print(_currentPlayer);
     final playerBreak = Break(
       points: points,
       playerName: _currentPlayer == 1 ? _userOne! : _userTwo!,
@@ -428,6 +487,7 @@ class _NewFrameState extends State<NewFrame> {
         .collection('frames')
         .doc(widget.frame.docReference)
         .update({'inProgress': false});
+
     Navigator.of(context).pop();
   }
 
@@ -435,6 +495,40 @@ class _NewFrameState extends State<NewFrame> {
     showFoulForm().then((value) {
       if (value == null) return;
       changeTurn();
+    });
+  }
+
+  Future<void> _incrementBlacksMissed(String name) async {
+    FirebaseFirestore.instance
+        .collection('users')
+        .where('name', isEqualTo: name)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        final userDoc = querySnapshot.docs.first;
+        final userData = userDoc.data();
+        final blacksMissed =
+            userData.containsKey('blacksMissed') ? userData['blacksMissed'] : 0;
+        final newBlacksMissed = blacksMissed + 1;
+        userDoc.reference.update({'blacksMissed': newBlacksMissed});
+      }
+    });
+  }
+
+  void _incrementBlacksPotted(String name) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .where('name', isEqualTo: name)
+        .get()
+        .then((querySnapshot) {
+      if (querySnapshot.docs.isNotEmpty) {
+        final userDoc = querySnapshot.docs.first;
+        final userData = userDoc.data();
+        final blacksPotted =
+            userData.containsKey('blacksPotted') ? userData['blacksPotted'] : 0;
+        final newBlacksPotted = blacksPotted + 1;
+        userDoc.reference.update({'blacksPotted': newBlacksPotted});
+      }
     });
   }
 
@@ -549,9 +643,12 @@ class _NewFrameState extends State<NewFrame> {
             children: [
               black
                   ? Row(children: [
-                      ElevatedButton(
-                          onPressed: concedeFrame,
-                          child: const Text('Concede Frame'))
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0, left: 4.0),
+                        child: ElevatedButton(
+                            onPressed: concedeFrame,
+                            child: const Text('Concede Frame')),
+                      )
                     ])
                   : Container(),
               const SizedBox(height: 20),
@@ -1000,6 +1097,7 @@ class _NewFrameState extends State<NewFrame> {
             ? null
             : () {
                 _updateBreak(7);
+                _checkOffSpot();
               },
         style: ElevatedButton.styleFrom(
           shape: const CircleBorder(),

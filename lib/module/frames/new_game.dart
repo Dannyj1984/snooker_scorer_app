@@ -70,9 +70,9 @@ class _NewGameDateState extends State<NewGameDate> {
     var playerTwoWins = 0;
 
     for (var frame in frames) {
-      if ((frame.playerOneScore ?? 0) > (frame.playerTwoScore ?? 0)) {
+      if ((frame.playerOneScore) > (frame.playerTwoScore)) {
         playerOneWins++;
-      } else {
+      } else if ((frame.playerOneScore) < (frame.playerTwoScore)) {
         playerTwoWins++;
       }
     }
@@ -138,15 +138,18 @@ class _NewGameDateState extends State<NewGameDate> {
             ),
           ),
           Center(
-            child: ElevatedButton(
-              onPressed: () {
-                FirebaseFirestore.instance
-                    .collection('games')
-                    .doc(_selectedGame.documentId)
-                    .update({'completed': true});
-                Navigator.pop(context);
-              },
-              child: const Text('Complete Session'),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 24.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  FirebaseFirestore.instance
+                      .collection('games')
+                      .doc(_selectedGame.documentId)
+                      .update({'completed': true});
+                  Navigator.pop(context);
+                },
+                child: const Text('Complete Session'),
+              ),
             ),
           ),
         ],

@@ -7,6 +7,7 @@ import 'package:snooker_scorer/module/frames/new_frame.dart';
 import 'package:snooker_scorer/module/frames/new_game.dart';
 import 'package:snooker_scorer/module/games/games.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:snooker_scorer/module/stats/stats.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -105,7 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               SizedBox(
                 width: screenWidth / 2 - 16,
-                height: 200,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -123,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(width: 16),
               SizedBox(
                 width: screenWidth / 2 - 16,
-                height: 200,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -147,25 +148,25 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               SizedBox(
                 width: screenWidth / 2 - 16,
-                height: 200,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const Games(
-                          title: 'New Game',
+                        builder: (context) => const Stats(
+                          title: 'Stats',
                         ),
                       ),
                     );
                   },
-                  child: const Text('Data'),
+                  child: const Text('Stats'),
                 ),
               ),
               const SizedBox(width: 16),
               SizedBox(
                 width: screenWidth / 2 - 16,
-                height: 200,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -177,9 +178,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     );
                   },
-                  child: const Text('New Frame'),
+                  child: const Text('Complete Sessions'),
                 ),
               ),
+              const SizedBox(width: 16),
             ],
           ),
         ),
