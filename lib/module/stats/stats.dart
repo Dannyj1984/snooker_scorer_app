@@ -1,11 +1,6 @@
-import 'dart:js_interop';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:snooker_scorer/helpers/date_helper.dart';
-import 'package:snooker_scorer/model/game_date.dart';
-import 'package:snooker_scorer/module/frames/new_game.dart';
-import 'package:snooker_scorer/module/games/game_details.dart';
+import 'package:intl/intl.dart';
 
 class Stats extends StatefulWidget {
   const Stats({super.key, required this.title});
@@ -24,13 +19,65 @@ class _StatsState extends State<Stats> {
   double andyAvgBreak = 0;
   double andyBlackPercent = 0;
   double dannyBlackPercent = 0;
-  final statKeys = ['Blacks Potted %', 'Best Break', 'Avg Break'];
+  int dannyLuckCount = 0;
+  int andyLuckCount = 0;
+  int dannyEasyMissCount = 0;
+  int andyEasyMissCount = 0;
+  dynamic averageBreaks;
 
   @override
   void initState() {
     super.initState();
     _getBreaks();
     _getBlackStats();
+    _getStats();
+    getAverageBreaksPerWeek();
+  }
+
+  Future<Map<String, double>> getAverageBreaksPerWeek() async {
+    // Fetch all breaks from Firestore
+    QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection('breaks').get();
+
+    // Group breaks by playerName and week
+    Map<String, Map<String, List<int>>> playerWeeklyBreaks = {};
+
+    for (var doc in snapshot.docs) {
+      var data = doc.data() as Map<String, dynamic>;
+      String playerName = data['playerName'];
+      int points = data['points'];
+      DateTime timestamp = DateTime.parse(data['timestamp'] as String);
+
+      // Calculate the week of the year
+      String weekOfYear = DateFormat('yyyy-ww').format(timestamp);
+
+      // Initialize player data if not already present
+      if (!playerWeeklyBreaks.containsKey(playerName)) {
+        playerWeeklyBreaks[playerName] = {};
+      }
+      if (!playerWeeklyBreaks[playerName]!.containsKey(weekOfYear)) {
+        playerWeeklyBreaks[playerName]![weekOfYear] = [];
+      }
+
+      // Add the break to the player's weekly data
+      playerWeeklyBreaks[playerName]![weekOfYear]!.add(points);
+    }
+
+    // Calculate the average breaks per week for each player
+    Map<String, double> averageBreaksPerWeek = {};
+
+    playerWeeklyBreaks.forEach((playerName, weeklyBreaks) {
+      int totalBreaks = 0;
+      int numberOfWeeks = weeklyBreaks.length;
+
+      weeklyBreaks.forEach((week, breaks) {
+        totalBreaks += breaks.length;
+      });
+
+      averageBreaksPerWeek[playerName] = (totalBreaks / numberOfWeeks);
+    });
+    averageBreaks = averageBreaksPerWeek;
+    return averageBreaksPerWeek;
   }
 
   Future<void> _getBlackStats() async {
@@ -52,6 +99,29 @@ class _StatsState extends State<Stats> {
         final andyTotalBlacks = andyBlacks + andyBlacksMissed;
         andyBlackPercent = (andyBlacks / andyTotalBlacks) * 100;
         dannyBlackPercent = (dannyBlacks / dannyTotalBlacks) * 100;
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> _getStats() async {
+    try {
+      final QuerySnapshot dannyData = await FirebaseFirestore.instance
+          .collection('users')
+          .where('name', isEqualTo: 'Danny')
+          .get();
+      if (dannyData.docs.isNotEmpty) {
+        dannyLuckCount = dannyData.docs.first['luck'];
+        dannyEasyMissCount = dannyData.docs.first['easyMiss'];
+      }
+      final QuerySnapshot andyData = await FirebaseFirestore.instance
+          .collection('users')
+          .where('name', isEqualTo: 'Andy')
+          .get();
+      if (andyData.docs.isNotEmpty) {
+        andyLuckCount = andyData.docs.first['luck'];
+        andyEasyMissCount = andyData.docs.first['easyMiss'];
       }
     } catch (e) {
       debugPrint(e.toString());
@@ -146,7 +216,7 @@ class _StatsState extends State<Stats> {
                   children: [
                     Text(dannyTopBreak.toString()),
                     const Text('Best Break'),
-                    Text(andyTopBreak.toStringAsFixed(2).toString()),
+                    Text(andyTopBreak.toString()),
                   ],
                 ),
                 const SizedBox(height: 5),
@@ -167,6 +237,36 @@ class _StatsState extends State<Stats> {
                     Text('${dannyBlackPercent.toStringAsFixed(2).toString()}%'),
                     const Text('Black Success %'),
                     Text('${andyBlackPercent.toStringAsFixed(2).toString()}%'),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(dannyLuckCount.toString()),
+                    const Text('Luck Count'),
+                    Text(andyLuckCount.toString()),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(dannyEasyMissCount.toString()),
+                    const Text('Easy Misses'),
+                    Text(andyEasyMissCount.toString()),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(averageBreaks['Danny'].toString()),
+                    const Text('20+ breaks per week'),
+                    Text(averageBreaks['Andy'].toString()),
                   ],
                 ),
               ],

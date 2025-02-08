@@ -85,9 +85,17 @@ class _MyHomePageState extends State<MyHomePage> {
     if (users.docs.length < 2) {
       await FirebaseFirestore.instance.collection('users').doc('user1').set({
         'name': 'Danny',
+        'luck': 0,
+        'easyMiss': 0,
+        'blacksMissed': 0,
+        'blacksPotted': 0,
       });
       await FirebaseFirestore.instance.collection('users').doc('user2').set({
         'name': 'Andy',
+        'luck': 0,
+        'easyMiss': 0,
+        'blacksMissed': 0,
+        'blacksPotted': 0,
       });
     }
   }
